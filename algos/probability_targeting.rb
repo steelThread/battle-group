@@ -1,21 +1,21 @@
 module BattleGroup
   #
-  # Implements a probablistic solution based on density using some linear
-  # algebra.  The gist is, during each round of the game, to reasses the
-  # possible positions for each of the game pieces still in play.  A density
-  # matrix is built from the individual pieces first by determining if the piece
-  # can fit in all possible positions on the board.  Each element in the
-  # matrix is a sum of the # of times the piece could be positioned there in
-  # both orientations.  All the matrices are then summed up to provide
-  # an overall potential density.
-  #
-  # While hunting the highest weighted positions in the matrix are visited first.
-  # If more than one position is found a random sample is taken from the
-  # collection.  Once a hit is found targeting initially uses density info
-  # to order the adjacent cells to attack. After to or more hits the algorithm
-  # will favor vertical and horizontal targets around the hits.  If this can't
+  # Employs probablistic solution based on density using a little linear
+  # algebra.  During each round of the game a density matrix is built for
+  # the individual pieces still in play by determining all possible positions
+  # on the board that a piece can fit.  Each element in the matrix is a sum of
+  # the # of times the piece could be positioned there in both orientations.  All
+  # individual matrices are then summed up to provide an overall density picture.
+
+  # While hunting the densest positions in the matrix are visited first.
+  # If more than one position is found, a random sample is taken from the
+  # set.  Once a hit is observed the targeting initially uses the density info
+  # to order the adjacent cells to attack. After two or more hits, the algorithm
+  # will favor vertical and horizontal targets based on the hit pattern.  If this can't
   # be determined (no single horizontal or vertical path) the density values
   # are again used to order target positions.
+  #
+  # 40 - 50 shot average per win (not emprical)
   #
   module ProbabilityTargeting
     attr_reader :matrix

@@ -1,10 +1,11 @@
 module BattleGroup
   #
-  # Implements a random hunt with adjacent targeting.  The hunting
-  # uses a parity (checkboard) based approach.  While targeting,
-  # encountered a hit, all the adjacent cells are also checked.
+  # Uses a random hunt with adjacent targeting.  Hunting uses a parity (checkboard)
+  # based approach.  When a hit is observed, all of the adjacent cells not already
+  # visited are searched until there are no more focused targets at which point
+  # the hunt continues.
   #
-  # 63 shot average over 100 games
+  # 60 - 65 shot per win (not emprical)
   #
   module AdjacentTargeting
     def next_coordinate
