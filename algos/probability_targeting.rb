@@ -3,8 +3,7 @@ module BattleGroup
     attr_reader :matrix
 
     def next_coordinate
-      puts "shooting @ #{@shot = next_target}"
-      @shot
+      @shot = next_target
     end
 
     def next_target
@@ -79,8 +78,7 @@ module BattleGroup
       end
 
       def process_sunk(len)
-        puts "sunk #{len} on #{shots.last}"
-        (@sunk << len).sort!.reverse
+        (@sunk << len).sort!
         find_sunk(len).each {|c| hits.delete(c)}
         hunt if hits.empty?
       end

@@ -28,22 +28,6 @@ module BattleGroup
       end
     end
 
-    def hunting?
-      focused_targets.empty?
-    end
-
-    def targeting?
-      !hunting?
-    end
-
-    def hunting?
-      focused_targets.empty?
-    end
-
-    def attacking?
-      !hunting?
-    end
-
     def targets
       @targets ||= coordinates.shuffle.shuffle
     end
@@ -53,6 +37,14 @@ module BattleGroup
         rows = (0..9).select {|v| (col.odd? ? v.odd? : v.even?)}
         rows.map {|row| Coordinate.new(row, col)}
       end.flatten
+    end
+
+    def hunting?
+      focused_targets.empty?
+    end
+
+    def attacking?
+      !hunting?
     end
 
     def focused_targets
