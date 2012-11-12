@@ -18,7 +18,7 @@ on the board that a piece can fit.  Each element in the matrix is a sum of
 the # of times the piece could be positioned there in both orientations.  All
 individual matrices are then summed up to provide an overall density picture.
 
-While hunting the densest positions in the matrix are visited first.
+While hunting, the densest positions in the matrix are visited first.
 If more than one position is found, a random sample is taken from the
 set.  Once a hit is observed the targeting initially uses the density info
 to order the adjacent cells to attack. After two or more hits, the algorithm
@@ -43,7 +43,7 @@ $ cd battle-group
 ## Running
 
 Requires Ruby 1.9, I'm using 1.9.3p286.  The player will connect to a local rails server.  To
-change just update the [code](https://github.com/steelThread/battle-group/blob/master/battle_group.rb#L326).
+change just update the [code](https://github.com/steelThread/battle-group/blob/master/battle_group.rb#L295).
 
 ```bash
 $ ruby battle_group.rb
