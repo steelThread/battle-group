@@ -243,9 +243,9 @@ module BattleGroup
   # Representations of the board cells.
   #
   class Coordinate
-    COLS = ('A'..'J').to_a
+    HEADERS = ('A'..'J').to_a
 
-    attr_reader :row, :col, :cols
+    attr_reader :row, :col
 
     def initialize(row ,col)
       @row, @col = row, col
@@ -268,7 +268,7 @@ module BattleGroup
     end
 
     def adjacent
-      [up, down, right, left].select {|c| c.valid? }
+      [up, down, right, left].select(&:valid?)
     end
 
     def valid?
@@ -280,7 +280,7 @@ module BattleGroup
     end
 
     def to_s
-      "#{COLS[col]}#{row+1}"
+      "#{HEADERS[col]}#{row+1}"
     end
   end
 end
