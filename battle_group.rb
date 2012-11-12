@@ -45,11 +45,11 @@ module BattleGroup
     end
 
     def over?
-      @status != :playing
+      status != :playing
     end
 
     def won?
-      @status == :won
+      status == :won
     end
   end
 
@@ -167,7 +167,7 @@ module BattleGroup
     end
 
     def place(ship)
-      if can_place?(ship)
+      if can_place? ship
         ship.coordinates.each {|c| cells[c.row][c.col] = ship.length}
       else
         place Ship.random(ship.length)
@@ -252,28 +252,23 @@ module BattleGroup
     end
 
     def up
-      Coordinate.new(row - 1, col)
+      Coordinate.new(row.pred, col)
     end
 
     def down
-      Coordinate.new(row + 1, col)
+      Coordinate.new(row.next, col)
     end
 
     def right
-      Coordinate.new(row, col + 1)
+      Coordinate.new(row, col.next)
     end
 
     def left
-      Coordinate.new(row, col - 1)
+      Coordinate.new(row, col.pred)
     end
 
     def adjacent
-      adj = []
-      adj << up    unless top_edge?
-      adj << down  unless bottom_edge?
-      adj << right unless right_edge?
-      adj << left  unless left_edge?
-      adj
+      [up, down, right, left].select {|c| c.valid? }
     end
 
     def valid?

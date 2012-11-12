@@ -40,24 +40,24 @@ module BattleGroup
     end
 
     def build_matrix
-      distributions.map {|d| d.matrix(shots)}.reduce(Matrix.zero(10), :+)
+      densities.map {|d| d.build_matrix(shots)}.reduce(Matrix.zero(10), :+)
     end
 
     def targets
-      find, targets = @matrix.max, []
-      @matrix.each_with_index do |val, row, col|
-        targets << Coordinate.new(row, col) if val == find
+      targets = []
+      matrix.each_with_index do |val, row, col|
+        targets << Coordinate.new(row, col) if val == matrix.max
       end
       targets
     end
 
-    def distributions
-      @distirbutions ||= [5, 4, 3, 3, 2].map {|len| Distribution.new(len)}
+    def densities
+      @densities ||= [5, 4, 3, 3, 2].map {|len| PieceDensity.new(len)}
     end
 
     def sunk(length)
-      distributions.delete(
-        distributions.select {|d| d.length == length}.first
+      densities.delete(
+        densities.select {|d| d.length == length}.first
       )
     end
 
@@ -66,14 +66,14 @@ module BattleGroup
     end
 
     def context
-      @context ||= TargetingContext.new self
+      @context ||= Context.new self
     end
 
     def shots
       @shots ||= []
     end
 
-    class TargetingContext
+    class Context
       attr_reader :hits, :targets, :targeting, :hit_cnt, :sunk
 
       def initialize(targeting)
@@ -104,53 +104,48 @@ module BattleGroup
       def refine(hit)
         if hits_vertically_aligned?
           targets.unshift(next_vertical_targets).flatten!
-          # targets.concat(next_vertical_targets).flatten!
-          # targets.sort! {|x, y| weight(x) <=> weight(y)}.reverse
 
         elsif hits_horizontally_aligned?
           targets.unshift(next_horizontal_targets).flatten!
-          # targets.concat(next_horizontal_targets).flatten!
-          # targets.sort! {|x, y| weight(x) <=> weight(y)}.reverse
 
         else
-          coordinates = hits.last.adjacent.select{|c| valid_target? c}
-          targets.concat coordinates
-          targets.sort! {|x, y| weight(x) <=> weight(y)}.reverse
+          targets.concat hits.last.adjacent.select{|c| valid_target? c}
+          targets.sort! {|x, y| density(x) <=> density(y)}.reverse
         end
       end
 
       def next_vertical_targets
-        sorted, bounds = hits.sort {|x, y| x.row <=> y.row}, []
-        up, down = sorted.first.up, sorted.last.down
-        bounds << up   if valid_target? up
-        bounds << down if valid_target? down
-        bounds
+        sorted = hits.sort {|x, y| x.row <=> y.row}
+        [sorted.first.up, sorted.last.down].select do |c|
+          valid_target? c
+        end
       end
 
       def next_horizontal_targets
-        sorted, bounds = hits.sort {|x, y| x.col <=> y.col}, []
-        left, right = sorted.first.left, sorted.last.right
-        bounds << left  if valid_target? left
-        bounds << right if valid_target? right
-        bounds
+        sorted = hits.sort {|x, y| x.col <=> y.col}
+        [sorted.first.left, sorted.last.right].select do |c|
+          valid_target? c
+        end
       end
 
-      def valid_target?(coordinate)
-        coordinate.valid? && !shots.include?(coordinate) && !targets.include?(coordinate)
+      def valid_target?(coord)
+        coord.valid? && !shots.include?(coord) && !targets.include?(coord)
       end
 
       def hits_vertically_aligned?
-        return false if hits.count == 1 || hits.empty?
-        hits.map(&:col).uniq.count == 1
+        unless hits.count == 1
+          hits.map(&:col).uniq.count == 1
+        end
       end
 
       def hits_horizontally_aligned?
-        return false if hits.count == 1 || hits.empty?
-        hits.map(&:row).uniq.count == 1
+        unless hits.count == 1
+          hits.map(&:row).uniq.count == 1
+        end
       end
 
-      def weight(coordinate)
-        matrix[coordinate.row, coordinate.col]
+      def density(coord)
+        matrix[coord.row, coord.col]
       end
 
       def find_sunk(len)
@@ -159,8 +154,8 @@ module BattleGroup
         end.select {|p| all_hits? p}.first
       end
 
-      def all_hits?(coordinates)
-        coordinates.reduce(true) {|m, c| m && hits.include?(c)}
+      def all_hits?(coords)
+        coords.reduce(true) {|m, c| m && hits.include?(c)}
       end
 
       def hunt
@@ -210,25 +205,25 @@ eos
       end
     end
 
-    class Distribution
-      attr_accessor :length
+    class PieceDensity
+      attr_reader :length, :matrix, :shots
 
       def initialize(length)
         @length = length
       end
 
-      def matrix(shots)
+      def build_matrix(shots)
         @shots, @matrix = shots, Matrix.zero(10)
         Matrix.rows(rows) + Matrix.columns(cols)
       end
 
       def rows
         row = -1
-        @matrix.row_vectors.collect do |vector|
+        matrix.row_vectors.collect do |vector|
           row = row.next
           range.map do |col|
             if covers_shot? (col...col+length).map{|j| Coordinate.new row, j}
-              Vector.elements Array.new(10, 0)
+              zero_vector
             else
               build_vector col
             end
@@ -238,11 +233,11 @@ eos
 
       def cols
         col = -1
-        @matrix.column_vectors.collect do |vector|
+        matrix.column_vectors.collect do |vector|
           col = col.next
           range.map do |row|
             if covers_shot? (row...row+length).map{|i| Coordinate.new i, col}
-              Vector.elements Array.new(10, 0)
+              zero_vector
             else
               build_vector row
             end
@@ -254,14 +249,18 @@ eos
         (0..10 - length)
       end
 
+      def covers_shot?(points)
+        points.reduce(false) {|m, c| m || shots.include?(c)}
+      end
+
       def build_vector(offset)
         Vector.elements (
           Array.new(offset, 0) + Array.new(length, 1) + Array.new(10 - offset - length, 0)
         )
       end
 
-      def covers_shot?(points)
-        points.reduce(false) {|m, c| m || @shots.include?(c)}
+      def zero_vector
+        Vector.elements Array.new(10, 0)
       end
     end
   end
