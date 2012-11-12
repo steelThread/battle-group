@@ -15,13 +15,13 @@ module BattleGroup
   class << self
     attr_reader :name, :fleet, :com, :battle
 
-    def general_quarters(address = 'http://localhost:3000')
+    def general_quarters(fleet = Board.generate, address = 'http://localhost:3000')
       @name   = "WHISKEY-TANGO-#{rand(100)}"
-      @fleet  = Board.generate
+      @fleet  = fleet
       @com    = CommunicationsOfficer.new(address)
       @battle = Battle.new(com.join[:game_id])
 
-      puts "Playing as #{@name}"
+      puts "Playing as #{@name}.  Waiting for opponent."
       OperationsOfficer.new.begin_offensive
     end
   end
@@ -30,7 +30,8 @@ module BattleGroup
   # Battle context
   #
   class Battle
-    attr_reader :id, :status
+    attr_reader :id, :status, :my_turn
+    alias :my_turn? :my_turn
 
     def initialize(id)
       @id, @status = id, :playing
@@ -38,10 +39,6 @@ module BattleGroup
 
     def update(status)
       @status, @my_turn = status[:game_status].to_sym, status[:my_turn]
-    end
-
-    def my_turn?
-      @my_turn
     end
 
     def over?
@@ -76,9 +73,9 @@ module BattleGroup
     def debrief
       battle = BattleGroup.battle
       puts msg = if battle.won?
-        "Congrats you won in #{cic.shots.count} shots"
+        "Congratulations sir! You won in #{cic.shots.count} shots."
       else
-        "You lost, need to upgrade your tactics son"
+        "You lost Ensign, need to upgrade your tactics son!"
       end
     end
 
@@ -95,6 +92,7 @@ module BattleGroup
   #
   class CombatInformationCenter
     include ProbabilityTargeting
+    # include AdjacentTargeting
   end
 
   #
@@ -245,10 +243,10 @@ module BattleGroup
   # Representations of the board cells.
   #
   class Coordinate
-    attr_reader :row, :col
+    attr_reader :row, :col, :cols
 
     def initialize(row ,col)
-      @row, @col = row, col
+      @row, @col, @cols = row, col, ('A'..'J').to_a
     end
 
     def up
@@ -275,32 +273,8 @@ module BattleGroup
       [row, col].reduce(true) {|m, v| m && v <= 9 && v >= 0}
     end
 
-    def top_edge?
-      row == 0
-    end
-
-    def bottom_edge?
-      row == 9
-    end
-
-    def left_edge?
-      col == 0
-    end
-
-    def right_edge?
-      col == 9
-    end
-
-    def cols
-      @cols ||= ('A'..'J').to_a
-    end
-
     def ==(other)
       col == other.col && row == other.row
-    end
-
-    def to_a
-      [row, col]
     end
 
     def to_s

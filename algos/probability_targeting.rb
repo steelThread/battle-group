@@ -159,8 +159,7 @@ module BattleGroup
       end
 
       def hunt
-        hits.clear
-        targets.clear
+        hits.clear and targets.clear
       end
 
       def hunting?
