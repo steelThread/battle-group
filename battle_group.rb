@@ -243,10 +243,12 @@ module BattleGroup
   # Representations of the board cells.
   #
   class Coordinate
+    COLS = ('A'..'J').to_a
+
     attr_reader :row, :col, :cols
 
     def initialize(row ,col)
-      @row, @col, @cols = row, col, ('A'..'J').to_a
+      @row, @col = row, col
     end
 
     def up
@@ -278,7 +280,7 @@ module BattleGroup
     end
 
     def to_s
-      "#{cols[col]}#{row+1}"
+      "#{COLS[col]}#{row+1}"
     end
   end
 end
