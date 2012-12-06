@@ -104,9 +104,11 @@ module BattleGroup
       def refine(hit)
         if hits_vertically_aligned?
           targets.unshift(next_vertical_targets).flatten!
+          targets.sort!{|x,y| x.col == shot.col ? -1 : 1 }
 
         elsif hits_horizontally_aligned?
           targets.unshift(next_horizontal_targets).flatten!
+          targets.sort!{|x,y| x.row == shot.row ? -1 : 1 }
 
         else
           targets.concat hits.last.adjacent.select{|c| valid_target? c}
